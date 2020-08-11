@@ -1,0 +1,33 @@
+name: 'Cache'
+description: 'Cache artifacts like dependencies and build outputs to improve workflow execution time'
+author: 'In Loco'
+inputs:
+  path:
+    description: 'A list of files, directories, and wildcard patterns to cache and restore'
+    required: true
+  key:
+    description: 'An explicit key for restoring and saving the cache'
+    required: true
+  restore-keys:
+    description: 'An ordered list of keys to use for restoring the cache if no cache hit occurred for key'
+    required: false
+  cache-url:
+    description: 'A value for ACTIONS_CACHE_URL environment variable'
+    restore: true
+  runtime-url:
+    description: 'A value for ACTIONS_RUNTIME_URL environment variable'
+    restore: false
+  runtime-token:
+    description: 'A value for ACTIONS_RUNTIME_TOKEN environment variable'
+    restore: false
+outputs:
+  cache-hit:
+    description: 'A boolean value to indicate an exact match was found for the primary key'
+runs:
+  using: 'node12'
+  main: 'dist/restore/index.js'
+  post: 'dist/save/index.js'
+  post-if: 'success()'
+branding:
+  icon: 'archive'
+  color: 'gray-dark'
