@@ -23,7 +23,7 @@
   "author": "In Loco",
   "license": "MIT",
   "dependencies": {
-    "cache": "actions/cache#v2.1.0"
+    "cache": "actions/cache#v2.1.1"
   },
   "devDependencies": {
     "@types/jest": "^24.0.13",
