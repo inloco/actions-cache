@@ -14,6 +14,7 @@ inputs:
   cache-url:
     description: 'A value for ACTIONS_CACHE_URL environment variable'
     required: true
+    default: 'http://service.artifactcache.svc.cluster.local'
   runtime-url:
     description: 'A value for ACTIONS_RUNTIME_URL environment variable'
     required: false
