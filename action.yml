@@ -13,13 +13,13 @@ inputs:
     required: false
   cache-url:
     description: 'A value for ACTIONS_CACHE_URL environment variable'
-    restore: true
+    required: true
   runtime-url:
     description: 'A value for ACTIONS_RUNTIME_URL environment variable'
-    restore: false
+    required: false
   runtime-token:
     description: 'A value for ACTIONS_RUNTIME_TOKEN environment variable'
-    restore: false
+    required: false
 outputs:
   cache-hit:
     description: 'A boolean value to indicate an exact match was found for the primary key'
