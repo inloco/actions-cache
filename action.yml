@@ -11,16 +11,6 @@ inputs:
   restore-keys:
     description: 'An ordered list of keys to use for restoring the cache if no cache hit occurred for key'
     required: false
-  cache-url:
-    description: 'A value for ACTIONS_CACHE_URL environment variable'
-    required: true
-    default: 'http://service.artifactcache.svc.cluster.local'
-  runtime-url:
-    description: 'A value for ACTIONS_RUNTIME_URL environment variable'
-    required: false
-  runtime-token:
-    description: 'A value for ACTIONS_RUNTIME_TOKEN environment variable'
-    required: false
 outputs:
   cache-hit:
     description: 'A boolean value to indicate an exact match was found for the primary key'

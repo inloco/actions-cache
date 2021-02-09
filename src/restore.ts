@@ -1,13 +1,32 @@
 import * as core from '@actions/core';
-
-import restore from '../node_modules/cache/dist/restore';
+import * as auth from './auth';
+import * as proc from './proc';
 
 async function run(): Promise<void> {
-  const newCacheURL = core.getInput('cache-url', { required: true }).replace(/\/$/, '');
-  const oldCacheURL = Buffer.from(process.env['ACTIONS_CACHE_URL']!).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/\=/g, '');
-  process.env['ACTIONS_CACHE_URL'] = `${newCacheURL}/${oldCacheURL}/`;
+  try {
+    core.info('Retrieving credentials...');
+    const key = core.getInput('key', { required: true });
+    const authResponse = await auth.get(key, auth.Type.Download);
+    core.setSecret(authResponse.accessKeyId);
+    core.setSecret(authResponse.secretAccessKey);
+    core.setSecret(authResponse.sessionToken);
 
-  return restore();
+    core.info('Setting up environment...');
+    process.env.AWS_ACCESS_KEY_ID = authResponse.accessKeyId;
+    process.env.AWS_SECRET_ACCESS_KEY = authResponse.secretAccessKey;
+    process.env.AWS_SESSION_TOKEN = authResponse.sessionToken;
+    process.env.S3_PATH = authResponse.s3ObjectPath;
+
+    if (!authResponse.cacheHit) {
+      core.info('Cache not found!');
+    } else {
+      core.info('Restoring cache...');
+      await proc.shell(`aws s3 cp $S3_PATH - | tar -xf - -C /`);
+    }
+    core.setOutput('cache-hit', authResponse.cacheHit);
+  } catch (error) {
+    core.setFailed(error);
+  }
 }
 
 run();
