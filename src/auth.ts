@@ -24,7 +24,7 @@ export class Response {
     public secretAccessKey: string,
     public sessionToken: string,
     public s3ObjectPath: string,
-    public cacheHit: boolean,
+    public cacheHit: boolean
   ) {}
 }
 
@@ -37,7 +37,7 @@ export async function get(cacheKey: string, type: Type): Promise<Response> {
     response.data['SecretAccessKey'],
     response.data['SessionToken'],
     response.data['ObjectS3URI'],
-    response.data['CacheHit'],
+    response.data['CacheHit']
   );
 
   if (
