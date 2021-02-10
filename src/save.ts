@@ -1,9 +1,10 @@
 import * as core from '@actions/core';
-import * as io from '@actions/io';
 import * as glob from '@actions/glob';
-import * as utils from './utils'
+import * as io from '@actions/io';
+
 import * as auth from './auth';
 import * as proc from './proc';
+import * as utils from './utils';
 
 async function run(): Promise<void> {
   try {

@@ -1,4 +1,5 @@
 import * as core from '@actions/core';
+
 import * as auth from './auth';
 import * as proc from './proc';
 
