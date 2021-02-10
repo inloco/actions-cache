@@ -8,7 +8,7 @@ import * as utils from './utils';
 
 async function run(): Promise<void> {
   try {
-    if (core.getState('cache-hit')) {
+    if (core.getState('cache-hit') === 'true') {
       core.info('Cache hit, skipping save...');
     } else {
       core.info('Preparing to save cache...');

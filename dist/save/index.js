@@ -5629,7 +5629,7 @@ const utils = __importStar(__webpack_require__(163));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            if (core.getState('cache-hit')) {
+            if (core.getState('cache-hit') === 'true') {
                 core.info('Cache hit, skipping save...');
             }
             else {
