@@ -3735,6 +3735,7 @@ function run() {
                 core.info('Restoring cache...');
                 yield proc.shell(`aws s3 cp $S3_PATH - | tar -xf - -C /`);
             }
+            core.saveState('cache-hit', authResponse.cacheHit);
             core.setOutput('cache-hit', authResponse.cacheHit);
         }
         catch (error) {
