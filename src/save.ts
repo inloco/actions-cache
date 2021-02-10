@@ -34,11 +34,12 @@ async function run(): Promise<void> {
         .filter(x => x !== '');
       const globber = await glob.create(patterns.join('\n'));
       const files = await globber.glob();
-      await utils.writeToFile('CACHEFILE.txt', files.join('\n'));
+      const tmp = await utils.generateTemporaryFile();
+      await utils.writeToFile(tmp, files.join('\n'));
 
       core.info('Saving cache...');
-      await proc.shell('tar -c -T CACHEFILE.txt | aws s3 cp - $S3_PATH');
-      await io.rmRF('CACHEFILE.txt');
+      await proc.shell(`tar -c -T ${tmp} | aws s3 cp - $S3_PATH`);
+      await io.rmRF(tmp);
     }
   } catch (error) {
     core.setFailed(error);
