@@ -23,6 +23,7 @@ async function run(): Promise<void> {
       core.info('Restoring cache...');
       await proc.shell(`aws s3 cp $S3_PATH - | tar -xf - -C /`);
     }
+    core.saveState('cache-hit', authResponse.cacheHit);
     core.setOutput('cache-hit', authResponse.cacheHit);
   } catch (error) {
     core.setFailed(error);

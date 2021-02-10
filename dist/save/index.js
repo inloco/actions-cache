@@ -5623,32 +5623,37 @@ const proc = __importStar(__webpack_require__(734));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            core.info('Retrieving credentials...');
-            const key = core.getInput('key', { required: true });
-            const authResponse = yield auth.get(key, auth.Type.Upload);
-            core.setSecret(authResponse.accessKeyId);
-            core.setSecret(authResponse.secretAccessKey);
-            core.setSecret(authResponse.sessionToken);
-            core.info('Setting up environment...');
-            process.env.AWS_ACCESS_KEY_ID = authResponse.accessKeyId;
-            process.env.AWS_SECRET_ACCESS_KEY = authResponse.secretAccessKey;
-            process.env.AWS_SESSION_TOKEN = authResponse.sessionToken;
-            process.env.S3_PATH = authResponse.s3ObjectPath;
-            core.info('Generating files list...');
-            const patterns = core
-                .getInput('path', { required: true })
-                .split('\n')
-                .map(s => s.trim())
-                .filter(x => x !== '');
-            const globber = yield glob.create(patterns.join('\n'));
-            const files = yield globber.glob();
-            yield utils.writeToFile('CACHEFILE.txt', files.join('\n'));
-            core.info('Saving cache...');
-            yield proc.shell('tar -c -T CACHEFILE.txt | aws s3 cp - $S3_PATH');
-            yield io.rmRF('CACHEFILE.txt');
+            if (core.getState('cache-hit')) {
+                core.info('Cache hit, skipping save...');
+            }
+            else {
+                core.info('Preparing to save cache...');
+                core.info('Retrieving credentials...');
+                const key = core.getInput('key', { required: true });
+                const authResponse = yield auth.get(key, auth.Type.Upload);
+                core.setSecret(authResponse.accessKeyId);
+                core.setSecret(authResponse.secretAccessKey);
+                core.setSecret(authResponse.sessionToken);
+                core.info('Setting up environment...');
+                process.env.AWS_ACCESS_KEY_ID = authResponse.accessKeyId;
+                process.env.AWS_SECRET_ACCESS_KEY = authResponse.secretAccessKey;
+                process.env.AWS_SESSION_TOKEN = authResponse.sessionToken;
+                process.env.S3_PATH = authResponse.s3ObjectPath;
+                core.info('Generating files list...');
+                const patterns = core
+                    .getInput('path', { required: true })
+                    .split('\n')
+                    .map(s => s.trim())
+                    .filter(x => x !== '');
+                const globber = yield glob.create(patterns.join('\n'));
+                const files = yield globber.glob();
+                yield utils.writeToFile('CACHEFILE.txt', files.join('\n'));
+                core.info('Saving cache...');
+                yield proc.shell('tar -c -T CACHEFILE.txt | aws s3 cp - $S3_PATH');
+                yield io.rmRF('CACHEFILE.txt');
+            }
         }
         catch (error) {
-            core.error(`Failed with error: ${error}`);
             core.setFailed(error);
         }
     });
