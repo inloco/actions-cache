@@ -11,7 +11,8 @@ export function toBase64Url(input: string): string {
 export function writeToFile(path: string, content: string): Promise<void> {
   return new Promise((resolve, reject) => {
     fs.writeFile(path, content, error => {
-      if (error) reject(error);
+      if (error)
+        reject(error);
       resolve();
     });
   });
