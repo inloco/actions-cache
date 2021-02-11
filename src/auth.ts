@@ -28,9 +28,19 @@ export class Response {
   ) {}
 }
 
-export async function get(cacheKey: string, type: Type): Promise<Response> {
-  const url = `${BASE_URL}/${defaultCacheUrl}/assumeRole/${cacheKey}/${type}`;
+export async function get(
+  cacheKey: string,
+  type: Type,
+  restoreKeys?: string[]
+): Promise<Response | null> {
+  let url = `${BASE_URL}/${defaultCacheUrl}/assumeRole/${cacheKey}/${type}`;
+  if (restoreKeys) url = url + `?restoreKeys=${restoreKeys.join(',')}`;
+
   const response = await axios.get(url, authReqOpts);
+
+  if (response.status == 204 /* NO_CONTENT */) {
+    return null;
+  }
 
   const data = new Response(
     response.data['AccessKeyId'],

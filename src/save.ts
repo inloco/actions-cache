@@ -15,23 +15,25 @@ async function run(): Promise<void> {
 
       core.info('Retrieving credentials...');
       const key = core.getInput('key', { required: true });
-      const authResponse = await auth.get(key, auth.Type.Upload);
-      core.setSecret(authResponse.accessKeyId);
-      core.setSecret(authResponse.secretAccessKey);
-      core.setSecret(authResponse.sessionToken);
+      const response = await auth.get(key, auth.Type.Upload);
+
+      if (response === null) {
+        core.warning('Failed to get credentials');
+        return;
+      }
+
+      core.setSecret(response.accessKeyId);
+      core.setSecret(response.secretAccessKey);
+      core.setSecret(response.sessionToken);
 
       core.info('Setting up environment...');
-      process.env.AWS_ACCESS_KEY_ID = authResponse.accessKeyId;
-      process.env.AWS_SECRET_ACCESS_KEY = authResponse.secretAccessKey;
-      process.env.AWS_SESSION_TOKEN = authResponse.sessionToken;
-      process.env.S3_PATH = authResponse.s3ObjectPath;
+      process.env.AWS_ACCESS_KEY_ID = response.accessKeyId;
+      process.env.AWS_SECRET_ACCESS_KEY = response.secretAccessKey;
+      process.env.AWS_SESSION_TOKEN = response.sessionToken;
+      process.env.S3_PATH = response.s3ObjectPath;
 
       core.info('Generating files list...');
-      const patterns = core
-        .getInput('path', { required: true })
-        .split('\n')
-        .map(s => s.trim())
-        .filter(x => x !== '');
+      const patterns = utils.getInputArray('path', true);
       const globber = await glob.create(patterns.join('\n'));
       const files = await globber.glob();
       const tmp = await utils.generateTemporaryFile();

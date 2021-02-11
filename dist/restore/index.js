@@ -962,9 +962,18 @@ var __importStar = (this && this.__importStar) || function (mod) {
     return result;
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.generateTemporaryFile = exports.writeToFile = exports.toBase64Url = void 0;
+exports.generateTemporaryFile = exports.writeToFile = exports.toBase64Url = exports.getInputArray = void 0;
+const core = __importStar(__webpack_require__(470));
 const fs = __importStar(__webpack_require__(747));
 const proc = __importStar(__webpack_require__(734));
+function getInputArray(input, required = false) {
+    return core
+        .getInput(input, { required: required })
+        .split('\n')
+        .map(s => s.trim())
+        .filter(x => x !== '');
+}
+exports.getInputArray = getInputArray;
 function toBase64Url(input) {
     return Buffer.from(input)
         .toString('base64')
@@ -1448,10 +1457,15 @@ class Response {
     }
 }
 exports.Response = Response;
-function get(cacheKey, type) {
+function get(cacheKey, type, restoreKeys) {
     return __awaiter(this, void 0, void 0, function* () {
-        const url = `${BASE_URL}/${defaultCacheUrl}/assumeRole/${cacheKey}/${type}`;
+        let url = `${BASE_URL}/${defaultCacheUrl}/assumeRole/${cacheKey}/${type}`;
+        if (restoreKeys)
+            url = url + `?restoreKeys=${restoreKeys.join(',')}`;
         const response = yield axios_1.default.get(url, authReqOpts);
+        if (response.status == 204 /* NO_CONTENT */) {
+            return null;
+        }
         const data = new Response(response.data['AccessKeyId'], response.data['SecretAccessKey'], response.data['SessionToken'], response.data['ObjectS3URI'], response.data['CacheHit']);
         if (data.accessKeyId === '' ||
             data.secretAccessKey === '' ||
@@ -3740,29 +3754,33 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core = __importStar(__webpack_require__(470));
 const auth = __importStar(__webpack_require__(331));
 const proc = __importStar(__webpack_require__(734));
+const utils = __importStar(__webpack_require__(163));
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
             core.info('Retrieving credentials...');
             const key = core.getInput('key', { required: true });
-            const authResponse = yield auth.get(key, auth.Type.Download);
-            core.setSecret(authResponse.accessKeyId);
-            core.setSecret(authResponse.secretAccessKey);
-            core.setSecret(authResponse.sessionToken);
-            core.info('Setting up environment...');
-            process.env.AWS_ACCESS_KEY_ID = authResponse.accessKeyId;
-            process.env.AWS_SECRET_ACCESS_KEY = authResponse.secretAccessKey;
-            process.env.AWS_SESSION_TOKEN = authResponse.sessionToken;
-            process.env.S3_PATH = authResponse.s3ObjectPath;
-            if (!authResponse.cacheHit) {
+            const restoreKeys = utils.getInputArray('restore-keys');
+            const response = yield auth.get(key, auth.Type.Download, restoreKeys);
+            if (response == null) {
                 core.info('Cache not found!');
+                core.saveState('cache-hit', false);
+                core.setOutput('cache-hit', false);
+                return;
             }
-            else {
-                core.info('Restoring cache...');
-                yield proc.shell(`aws s3 cp $S3_PATH - | tar -xf - -C /`);
-            }
-            core.saveState('cache-hit', authResponse.cacheHit);
-            core.setOutput('cache-hit', authResponse.cacheHit);
+            core.setSecret(response.accessKeyId);
+            core.setSecret(response.secretAccessKey);
+            core.setSecret(response.sessionToken);
+            core.info('Setting up environment...');
+            process.env.AWS_ACCESS_KEY_ID = response.accessKeyId;
+            process.env.AWS_SECRET_ACCESS_KEY = response.secretAccessKey;
+            process.env.AWS_SESSION_TOKEN = response.sessionToken;
+            process.env.S3_PATH = response.s3ObjectPath;
+            core.info(`Cache hit: ${response.cacheHit}`);
+            core.info('Restoring cache...');
+            yield proc.shell(`aws s3 cp $S3_PATH - | tar -xf - -C /`);
+            core.saveState('cache-hit', response.cacheHit);
+            core.setOutput('cache-hit', response.cacheHit);
         }
         catch (error) {
             core.setFailed(error);
