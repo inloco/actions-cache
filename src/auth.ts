@@ -34,7 +34,7 @@ export async function get(
   restoreKeys?: string[]
 ): Promise<Response | null> {
   let url = `${BASE_URL}/${defaultCacheUrl}/assumeRole/${cacheKey}/${type}`;
-  if (restoreKeys) url = url + `?restoreKeys=${restoreKeys.join(',')}`;
+  if (restoreKeys?.length) url = url + `?restoreKeys=${restoreKeys.join(',')}`;
 
   const response = await axios.get(url, authReqOpts);
 

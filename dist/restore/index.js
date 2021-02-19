@@ -1460,7 +1460,7 @@ exports.Response = Response;
 function get(cacheKey, type, restoreKeys) {
     return __awaiter(this, void 0, void 0, function* () {
         let url = `${BASE_URL}/${defaultCacheUrl}/assumeRole/${cacheKey}/${type}`;
-        if (restoreKeys)
+        if (restoreKeys === null || restoreKeys === void 0 ? void 0 : restoreKeys.length)
             url = url + `?restoreKeys=${restoreKeys.join(',')}`;
         const response = yield axios_1.default.get(url, authReqOpts);
         if (response.status == 204 /* NO_CONTENT */) {
